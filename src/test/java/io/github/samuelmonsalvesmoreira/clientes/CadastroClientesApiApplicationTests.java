@@ -1,13 +1,14 @@
-package one.digitalinnovation.gof;
+package io.github.samuelmonsalvesmoreira.clientes;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class LabPadroesProjetoSpringApplicationTests {
+class CadastroClientesApiApplicationTests {
 
 	@Test
 	void contextLoads() {
 	}
 
 }
+
