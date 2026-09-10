@@ -3,7 +3,9 @@ package io.github.samuelmonsalvesmoreira.clientes.model;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 
 @Entity
 @Table(name = "enderecos")
@@ -11,6 +13,7 @@ public class Endereco {
 
     @Id
     @NotBlank(message = "O CEP é obrigatório")
+    @Pattern(regexp = "\\d{5}-?\\d{3}", message = "O CEP deve ter 8 números")
     private String cep;
 
     private String logradouro;
@@ -25,6 +28,9 @@ public class Endereco {
     private String gia;
     private String ddd;
     private String siafi;
+
+    @Transient
+    private Boolean erro;
 
     public Endereco() {
     }
@@ -132,5 +138,12 @@ public class Endereco {
     public void setSiafi(String siafi) {
         this.siafi = siafi;
     }
-}
 
+    public Boolean getErro() {
+        return erro;
+    }
+
+    public void setErro(Boolean erro) {
+        this.erro = erro;
+    }
+}

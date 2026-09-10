@@ -1,51 +1,34 @@
 # Cadastro de Clientes API
 
-API REST em desenvolvimento para cadastrar clientes e preencher seus endereços a partir do CEP.
+API REST para cadastrar clientes e preencher automaticamente o endereço a partir do CEP informado.
 
-O projeto faz parte do desafio **Explorando Padrões de Projetos na Prática com Java**, da Digital Innovation One. A implementação usa uma versão atualizada da plataforma Java e do Spring Boot.
+O projeto foi desenvolvido para o desafio **Explorando Padrões de Projetos na Prática com Java**, da Digital Innovation One. A ideia original do professor foi mantida e adaptada para versões atuais do Java e do Spring Boot.
 
-## Objetivo
-
-Praticar a organização de uma aplicação Spring e entender como padrões de projeto aparecem em uma situação real.
-
-Quando estiver concluída, a aplicação seguirá este fluxo:
+## Como a aplicação funciona
 
 ```text
-Usuário informa nome e CEP
-           ↓
-API recebe os dados
-           ↓
+Cliente envia nome e CEP
+          ↓
+Controller recebe a requisição
+          ↓
+Service aplica as regras
+          ↓
 ViaCEP fornece o endereço
-           ↓
-Cliente e endereço são salvos no banco
+          ↓
+Repositories salvam os dados no H2
 ```
 
-## Situação do projeto
-
-O projeto está sendo construído por etapas.
-
-- [x] Criação do projeto com Spring Initializr
-- [x] Configuração das dependências
-- [x] Criação dos modelos `Cliente` e `Endereco`
-- [ ] Criação dos repositórios
-- [ ] Integração com a API ViaCEP
-- [ ] Implementação das regras no serviço
-- [ ] Criação dos endpoints REST
-- [ ] Tratamento de erros
-- [ ] Testes automatizados
-- [ ] Documentação dos endpoints
-
-## Funcionalidades planejadas
+## Funcionalidades
 
 - Cadastrar um cliente informando nome e CEP
 - Consultar todos os clientes
 - Consultar um cliente pelo ID
 - Atualizar um cliente
 - Excluir um cliente
-- Consultar automaticamente o endereço pelo CEP
-- Validar os dados enviados
-
-> Os endpoints ainda não foram implementados. Esta seção descreve o resultado esperado ao final do desafio.
+- Consultar automaticamente o endereço pelo ViaCEP
+- Reutilizar endereços que já estão salvos no banco
+- Validar nome, endereço e CEP
+- Retornar respostas de erro claras
 
 ## Tecnologias
 
@@ -57,67 +40,147 @@ O projeto está sendo construído por etapas.
 - Jakarta Validation
 - H2 Database
 - Maven
+- JUnit e Mockito
 
-## Padrões de projeto estudados
+## Endpoints
+
+| Método | Endpoint | Função | Resposta de sucesso |
+|---|---|---|---|
+| `GET` | `/clientes` | Lista todos os clientes | `200 OK` |
+| `GET` | `/clientes/{id}` | Busca um cliente pelo ID | `200 OK` |
+| `POST` | `/clientes` | Cadastra um cliente | `201 Created` |
+| `PUT` | `/clientes/{id}` | Atualiza um cliente | `200 OK` |
+| `DELETE` | `/clientes/{id}` | Exclui um cliente | `204 No Content` |
+
+### Exemplo de cadastro
+
+Requisição para `POST /clientes`:
+
+```json
+{
+  "nome": "Samuel",
+  "endereco": {
+    "cep": "01001-000"
+  }
+}
+```
+
+Resposta:
+
+```json
+{
+  "id": 1,
+  "nome": "Samuel",
+  "endereco": {
+    "cep": "01001000",
+    "logradouro": "Praça da Sé",
+    "complemento": "lado ímpar",
+    "bairro": "Sé",
+    "localidade": "São Paulo",
+    "uf": "SP",
+    "estado": "São Paulo",
+    "regiao": "Sudeste",
+    "ddd": "11"
+  }
+}
+```
+
+> Para cadastrar ou atualizar um CEP que ainda não está salvo, a aplicação precisa de acesso à internet para consultar o ViaCEP.
+
+## Respostas de erro
+
+- `400 Bad Request`: nome, endereço ou CEP inválido
+- `404 Not Found`: cliente não encontrado
+- `502 Bad Gateway`: não foi possível consultar o ViaCEP
+
+Exemplo:
+
+```json
+{
+  "instante": "2026-09-10T13:35:02Z",
+  "status": 404,
+  "erro": "Not Found",
+  "mensagem": "Cliente não encontrado com o ID 1.",
+  "caminho": "/clientes/1"
+}
+```
+
+## Padrões de projeto aplicados
 
 ### Repository
 
-Separa o acesso ao banco de dados das demais regras da aplicação. Será utilizado pelos repositórios de clientes e endereços.
+As interfaces `ClienteRepository` e `EnderecoRepository` separam o acesso ao banco das regras da aplicação.
 
 ### Strategy
 
-Uma interface define as operações de clientes, enquanto uma classe de serviço fornece a implementação dessas operações.
+A interface `ClienteService` define as operações disponíveis. A classe `ClienteServiceImpl` contém a implementação dessas operações.
 
 ### Facade
 
-O serviço de clientes oferecerá uma entrada simples para coordenar o banco de dados e a consulta externa ao ViaCEP.
+O serviço de clientes oferece uma entrada simples para coordenar os repositórios e a consulta externa ao ViaCEP.
 
 ### Singleton
 
-Por padrão, o Spring cria uma única instância dos componentes administrados, como serviços e controllers, e reutiliza essa instância na aplicação.
+Por padrão, o Spring cria uma única instância dos componentes administrados, como services, repositories e controllers, e reutiliza essas instâncias durante a execução.
 
 ## Organização do código
 
 ```text
-src/main/java/io/github/samuelmonsalvesmoreira/clientes
-├── CadastroClientesApiApplication.java
-├── controller
-├── model
-│   ├── Cliente.java
-│   └── Endereco.java
-├── repository
-└── service
+src
+├── main
+│   ├── java/io/github/samuelmonsalvesmoreira/clientes
+│   │   ├── controller
+│   │   ├── exception
+│   │   ├── model
+│   │   ├── repository
+│   │   └── service
+│   └── resources
+│       └── application.properties
+└── test
+    └── java/io/github/samuelmonsalvesmoreira/clientes
+        ├── controller
+        └── service
 ```
 
 | Pacote | Responsabilidade |
 |---|---|
-| `model` | Representar os dados de clientes e endereços |
-| `repository` | Salvar e consultar informações no banco |
+| `model` | Representar clientes e endereços |
+| `repository` | Salvar e consultar dados no banco |
 | `service` | Aplicar regras e coordenar as operações |
-| `controller` | Receber e responder às requisições HTTP |
+| `controller` | Receber as requisições HTTP |
+| `exception` | Padronizar o tratamento de erros |
 
 ## Como executar pelo IntelliJ IDEA
 
 1. Abra o arquivo `pom.xml` como projeto.
-2. Aguarde o carregamento das dependências do Maven.
-3. Verifique se o projeto está utilizando o JDK 26.
+2. Aguarde o Maven carregar as dependências.
+3. Verifique se o projeto está usando o JDK 26.
 4. Abra `CadastroClientesApiApplication.java`.
-5. Execute o método `main` pelo botão verde.
-6. Confirme no console a mensagem de que o Tomcat iniciou na porta `8080`.
+5. Clique no botão verde ao lado do método `main`.
+6. Confirme no console que o Tomcat iniciou na porta `8080`.
+7. Teste os endpoints em `http://localhost:8080/clientes` usando Postman, Insomnia ou outro cliente HTTP.
 
-Enquanto nenhum endpoint estiver criado, acessar `http://localhost:8080` poderá retornar uma página 404. Isso é esperado.
+## Banco de dados H2
 
-## Banco de dados
+O banco funciona em memória e seus dados são apagados quando a aplicação é encerrada.
 
-Durante o desenvolvimento será utilizado o H2, um banco em memória. Os dados podem ser perdidos quando a aplicação é encerrada, o que é adequado para os primeiros testes.
+- Console: `http://localhost:8080/h2-console`
+- JDBC URL: `jdbc:h2:mem:clientes`
+- Usuário: `sa`
+- Senha: deixe em branco
 
-## Referência
+## Testes automatizados
 
-- [Desafio de padrões de projeto da DIO](https://github.com/digitalinnovationone/lab-padroes-projeto-spring)
+Os testes cobrem as regras do serviço, a reutilização de endereços, a consulta ao ViaCEP, as validações e as respostas dos endpoints.
+
+No IntelliJ, clique com o botão direito sobre `src/test` e escolha **Run 'All Tests'**.
+
+## Referências
+
+- [Projeto de referência da DIO](https://github.com/digitalinnovationone/lab-padroes-projeto-spring)
 - [ViaCEP](https://viacep.com.br/)
 - [Spring Initializr](https://start.spring.io/)
 
 ## Autor
 
 Desenvolvido por **Samuel Monsalves Moreira** como projeto de estudo de Java, Spring Boot e padrões de projeto.
-

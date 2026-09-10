@@ -11,8 +11,8 @@
 	<groupId>io.github.samuelmonsalvesmoreira</groupId>
 	<artifactId>cadastro-clientes-api</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name/>
-	<description/>
+	<name>Cadastro de Clientes API</name>
+	<description>API REST para cadastro de clientes com consulta de endereço pelo ViaCEP</description>
 	<url/>
 	<licenses>
 		<license/>
@@ -95,4 +95,3 @@
 	</build>
 
 </project>
-

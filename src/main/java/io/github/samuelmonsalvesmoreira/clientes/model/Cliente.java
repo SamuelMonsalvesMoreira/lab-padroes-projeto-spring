@@ -9,6 +9,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "clientes")
@@ -22,6 +23,7 @@ public class Cliente {
     private String nome;
 
     @Valid
+    @NotNull(message = "O endereço é obrigatório")
     @ManyToOne
     @JoinColumn(name = "endereco_cep")
     private Endereco endereco;
@@ -49,4 +51,3 @@ public class Cliente {
         this.endereco = endereco;
     }
 }
-
